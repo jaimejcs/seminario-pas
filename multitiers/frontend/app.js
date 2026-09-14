@@ -1,3 +1,4 @@
+import { learning, challenges } from './learning.js';
 const $ = s => document.querySelector(s);
 const api = new URLSearchParams(location.search).get('api') || `${location.protocol}//${location.hostname}:8000`;
 const colors = ['#409c7c','#d4ad48','#e98f4c','#de6571'];
@@ -11,7 +12,7 @@ let roads = [], initial = [], selected = 1, architecture = 'blackboard', respons
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function toast(message){$('#toast').textContent=message;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,3200);}
 async function request(path, body){const res=await fetch(api+path,{...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(10000)});const data=await res.json();if(!res.ok)throw Error(data.error || 'Falha na API');return data;}
-function errorMessage(error){$('#error').textContent=`Não foi possível consultar a API. Verifique se “python3 server.py” está em execução na porta 8000. ${error.message}`;$('#error').hidden=false;$('#connection').textContent='API indisponível';$('#connection-dot').style.background=colors[3];}
+function errorMessage(error){$('#error').textContent=`Não foi possível consultar a API. Verifique se a API está em execução em ${api}. ${error.message}`;$('#error').hidden=false;$('#connection').textContent='API indisponível';$('#connection-dot').style.background=colors[3];}
 function lock(value){busy=value;document.querySelectorAll('button, form input, form select, #road-select').forEach(el=>el.disabled=value);}
 async function analyze(nextRoads=roads,nextArch=architecture,message=''){
  if(busy)return;lock(true);
@@ -31,6 +32,7 @@ function render(){
  const positions=[[310,104],[125,61],[406,183],[610,263]];
  $('#map-labels').innerHTML=analyzed.map((r,i)=>{const [x,y]=positions[i];return `<g data-road="${r.id}" tabindex="0" role="button" aria-label="Selecionar ${r.road}" style="cursor:pointer"><rect x="${x}" y="${y-15}" width="112" height="28" rx="5" fill="white" stroke="${r.id===selected?'#a998df':'#e0e6e1'}"/><circle cx="${x+12}" cy="${y-1}" r="3" fill="${colors[r.level]}"/><text x="${x+23}" y="${y+3}" fill="#66746d" font-size="10">${r.road}</text></g>`;}).join('');
  $('#road-select').innerHTML=roads.map(r=>`<option value="${r.id}" ${r.id===selected?'selected':''}>${r.road}</option>`).join('');
+ renderLearning();
  renderInspector();
 }
 function renderInspector(){
@@ -56,3 +58,15 @@ document.querySelectorAll('[data-page]').forEach(el=>el.onclick=()=>{document.qu
 $('#compare').onclick=async()=>{if(busy)return;lock(true);try{const snapshot=structuredClone(roads),all=[];for(const key of Object.keys(architectures))all.push(await request('/api/analyze',{architecture:key,roads:snapshot}));const equal=all.every(r=>JSON.stringify(r.roads)===JSON.stringify(all[0].roads));$('#comparison-results').innerHTML=`<div class="${equal?'comparison-success':'comparison-fail'}">${equal?'✓ Resultados equivalentes nas três arquiteturas.':'△ Divergência detectada nos resultados.'} Leitura ${reading} · comparação de todos os campos retornados.</div><div class="table-scroll"><table><thead><tr><th>Via</th>${all.map(r=>`<th>${architectures[r.architecture].name}<br><small>${r.duration_ms} ms de servidor</small></th>`).join('')}</tr></thead><tbody>${snapshot.map((road,i)=>`<tr><td>${road.road}</td>${all.map(r=>`<td>${badge(r.roads[i])}<p>${r.roads[i].recommendation}</p></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;$('#error').hidden=true;}catch(error){errorMessage(error);}finally{lock(false);}};
 async function init(){lock(true);try{const data=await request('/api/roads');initial=structuredClone(data.roads);roads=structuredClone(initial);}catch(error){errorMessage(error);}finally{lock(false);}if(roads.length)await analyze();else{document.querySelectorAll('#monitor-page button,#compare').forEach(el=>el.disabled=true);$('#error').append(' Recarregue a página após iniciar a API.');}}
 init();
+
+function renderLearning(){
+ const info=learning[architecture];
+ $('#learning-panel').innerHTML=`<div class="eyebrow">LEITURA ARQUITETURAL / ${architectures[architecture].name.toUpperCase()}</div><h2>O que esta escolha favorece?</h2><div class="learning-grid">${[['Característica central',info.characteristic],['Quando aplicar',info.application],['Benefício',info.benefit],['Limitação',info.limitation]].map(([title,body])=>`<div><h3>${title}</h3><p>${body}</p></div>`).join('')}</div><div class="tradeoff-callout"><strong>Trade-off principal</strong><p>${info.tradeoff}</p></div><p class="evidence"><strong>Observe no laboratório:</strong> ${info.evidence}</p>`;
+}
+function renderChallenge(){
+ const c=challenges[$('#challenge').value];
+ $('#challenge-content').innerHTML=`<h3>${c.title}</h3><p>${c.context}</p><div class="table-scroll"><table><thead><tr><th>Arquitetura</th><th>Mudança necessária</th><th>Benefício × custo</th></tr></thead><tbody>${c.rows.map(row=>`<tr>${row.map(cell=>`<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="evidence">${c.experiment}</p><div class="tradeoff-callout"><strong>Para discutir</strong><p>${c.question}</p></div>`;
+}
+$('#challenge').onchange=renderChallenge;
+renderLearning();
+renderChallenge();

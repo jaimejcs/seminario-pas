@@ -68,3 +68,19 @@ Testes cobrem cenários esperados, limites das regras, equivalência em 288 comb
 ## Limites da demonstração
 
 Mapa esquemático e sensores simulados. Recomendações não alteram automaticamente o tempo verde. O evento esportivo acrescenta um nível nas três versões; em Blackboard, isso ativa um especialista adicional. Tempos mostrados são medições reais do processamento local, incluem persistência em Multitiers e não são um benchmark de superioridade arquitetural. Não há cluster, implantação distribuída do banco nem controle de dispositivos reais.
+
+## Portas ocupadas
+
+O inicializador verifica as portas antes de criar os processos e só anuncia os links depois que os dois servidores respondem. Se outra execução já estiver aberta, use-a ou encerre com Ctrl+C no terminal correspondente. Para usar portas diferentes:
+
+```bash
+python3 run.py --frontend-port 3001 --api-port 8001
+```
+
+Abra o link completo impresso, que inclui a configuração da API. O inicializador não encerra processos de outras execuções.
+
+## Foco didático
+
+Cada arquitetura tem um painel com características, situações de aplicação, benefícios, limitações, trade-off principal e evidência observável. Na comparação, selecione uma mudança de requisito: evento esportivo, nova apresentação ou 100.000 usuários. O painel apresenta o impacto e uma pergunta para discussão, distinguindo experimentos implementados de possibilidades conceituais.
+
+MVC, Blackboard e Multitiers tratam dimensões diferentes e podem coexistir em um sistema. A demonstração não pretende determinar uma alternativa universalmente superior.
