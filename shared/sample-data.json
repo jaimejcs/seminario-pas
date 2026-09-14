@@ -1,0 +1,6 @@
+[
+  {"id":1,"road":"Avenida A","average_speed":18,"vehicles_per_minute":92,"traffic_light_green_time":30,"accident":false,"weather":"heavy_rain"},
+  {"id":2,"road":"Avenida B","average_speed":42,"vehicles_per_minute":45,"traffic_light_green_time":40,"accident":false,"weather":"clear"},
+  {"id":3,"road":"Rua C","average_speed":25,"vehicles_per_minute":70,"traffic_light_green_time":25,"accident":true,"weather":"clear"},
+  {"id":4,"road":"Rua D","average_speed":50,"vehicles_per_minute":35,"traffic_light_green_time":35,"accident":false,"weather":"light_rain"}
+]
